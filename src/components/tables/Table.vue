@@ -48,9 +48,18 @@
         <div class="table-actions">
           <slot name="custom_action" />
 
-          <b-button id="table-filter" :pressed.sync="showFilter" variant="outline-dark" class="custom-outline-dark">
+          <b-button
+            id="table-filter"
+            :pressed.sync="showFilter"
+            variant="outline-dark"
+            class="custom-outline-dark"
+          >
             <font-awesome-icon icon="filter" />
-            <b-tooltip target="table-filter" triggers="hover" placement="bottom">{{ $t('actions.filter') }}</b-tooltip>
+            <b-tooltip
+              target="table-filter"
+              triggers="hover"
+              placement="bottom"
+            >{{ $t('actions.filter') }}</b-tooltip>
           </b-button>
 
           <button
@@ -59,9 +68,11 @@
             @click="showPreferences = true"
           >
             <font-awesome-icon icon="cog" />
-            <b-tooltip target="display-preferences" triggers="hover" placement="bottom">
-              {{ $t('actions.displayPreferences') }}
-            </b-tooltip>
+            <b-tooltip
+              target="display-preferences"
+              triggers="hover"
+              placement="bottom"
+            >{{ $t('actions.displayPreferences') }}</b-tooltip>
           </button>
         </div>
       </div>
@@ -96,9 +107,11 @@
     </div>
 
     <div class="table-caption">
-      <slot id="caption_title" name="caption_title" :total="formattedTotal">
-        {{ $t('caption.title', { total: formattedTotal }) }}
-      </slot>
+      <slot
+        id="caption_title"
+        name="caption_title"
+        :total="formattedTotal"
+      >{{ $t('caption.title', { total: formattedTotal }) }}</slot>
       <multiselect
         v-if="filtersets && filtersets.length && !showFilter && !inlineMode"
         :value="filterset"
@@ -114,99 +127,177 @@
       />
     </div>
 
-    <div v-if="view" class="table-view-component">
-      <div ref="thead" class="table-view-thead">
-        <div class="table-view-tr">
-          <div class="table-view-th" :class="sortedColumn.id === firstColumnId ? 'sorted-header' : ''">
-            <slot name="first_header" />
-            <span class="ml-2" @click="sortByColumn(firstColumnId)">
-              <font-awesome-icon
-                v-if="sortedColumn.id === firstColumnId"
-                :icon="sortTypes[sortedColumn.sortedStateIndex].icon"
-                class="sorted-icon"
-              />
-              <font-awesome-icon v-else :icon="sortTypes[0].icon" class="sort-icon" />
-            </span>
-          </div>
-          <div
-            v-for="field in columns"
-            :key="field.id"
-            class="table-view-th"
-            :class="sortedColumn.id === field.id ? 'sorted-header' : ''"
-          >
-            {{ field.label }}
-            <span class="ml-2" :id="field.id" @click="sortByColumn(field.id)">
-              <font-awesome-icon
-                v-if="sortedColumn.id === field.id"
-                :icon="sortTypes[sortedColumn.sortedStateIndex].icon"
-                class="sorted-icon"
-              />
-              <font-awesome-icon v-else :icon="sortTypes[0].icon" class="sort-icon" />
-            </span>
+    <div class="tview-component-container">
+      <div v-if="view" class="table-view-component">
+        <div ref="thead" class="table-view-thead">
+          <div class="table-view-tr">
+            <div
+              class="table-view-th"
+              :class="sortedColumn.id === firstColumnId ? 'sorted-header' : ''"
+            >
+              <slot name="first_header" />
+              <span class="ml-2" @click="sortByColumn(firstColumnId)">
+                <font-awesome-icon
+                  v-if="sortedColumn.id === firstColumnId"
+                  :icon="sortTypes[sortedColumn.sortedStateIndex].icon"
+                  class="sorted-icon"
+                />
+                <font-awesome-icon v-else :icon="sortTypes[0].icon" class="sort-icon" />
+              </span>
+            </div>
+            
           </div>
         </div>
-      </div>
 
-      <div v-show="!isLoadingItems" ref="tbody" class="table-view-tbody" @scroll="onScroll">
-        <div
-          v-for="item in items"
-          v-bind:item="item"
-          :key="`${item.id}-row`"
-          :class="{ 'panel-open': openPanels[item.id] }"
-          class="table-view-tr"
-        >
-          <div class="table-view-row">
-            <div class="table-view-td" :class="sortedColumn.id === firstColumnId ? 'sorted-column' : ''">
-              <slot
-                name="first_column"
-                :filterset="filterset"
-                :item="item"
-                :showPanel="showPanel"
-                :isPanelOpen="openPanels[item.id]"
-                :togglePanel="togglePanel"
-              />
+        <div v-show="!isLoadingItems" ref="tbody" class="table-view-tbody" id="company-name-container">
+          <div
+            v-for="item in items"
+            v-bind:item="item"
+            :key="`${item.id}-row`"
+            :class="{ 'panel-open': openPanels[item.id] }"
+            class="table-view-tr"
+          >
+            <div class="table-view-row">
+              <div
+                class="table-view-td"
+                :class="sortedColumn.id === firstColumnId ? 'sorted-column' : ''"
+              >
+                <slot
+                  name="first_column"
+                  :filterset="filterset"
+                  :item="item"
+                  :showPanel="showPanel"
+                  :isPanelOpen="openPanels[item.id]"
+                  :togglePanel="togglePanel"
+                  class="none"
+                />
+              </div>
+
+              
             </div>
 
             <div
-              v-for="field in columns"
-              :key="field.field_id"
-              class="table-view-td"
-              :class="sortedColumn.id === field.id ? 'sorted-column' : ''"
+              v-if="showPanel && openPanels[item.id]"
+              :key="`${item.id}-detail`"
+              class="table-view-detail"
             >
-              <slot :name="field.select_field" v-bind:item="item">
-                <!-- eslint-disable-next-line vue/require-component-is -->
-                <component v-bind="getField(item, field)" />
-              </slot>
+              <slot
+                name="detail"
+                :view.sync="view"
+                :item.sync="item"
+                :panelFields.sync="view.display_preferences.panel_fields"
+                :getField="getField"
+                :getAvailableFieldById="getAvailableFieldById"
+              />
             </div>
-          </div>
-
-          <div v-if="showPanel && openPanels[item.id]" :key="`${item.id}-detail`" class="table-view-detail">
-            <slot
-              name="detail"
-              :view.sync="view"
-              :item.sync="item"
-              :panelFields.sync="view.display_preferences.panel_fields"
-              :getField="getField"
-              :getAvailableFieldById="getAvailableFieldById"
-            />
           </div>
         </div>
       </div>
-      <div class="table-loader">
-        <loader-icon v-if="isLoadingItems" />
+      <div v-if="view" class="table-view-component">
+        <div ref="thead" class="table-view-thead">
+          <div class="table-view-tr">
+            <div
+              class="table-view-th"
+              :class="sortedColumn.id === firstColumnId ? 'sorted-header' : ''"
+            >
+              <slot name="first_header" />
+              <span class="ml-2" @click="sortByColumn(firstColumnId)">
+                <font-awesome-icon
+                  v-if="sortedColumn.id === firstColumnId"
+                  :icon="sortTypes[sortedColumn.sortedStateIndex].icon"
+                  class="sorted-icon"
+                />
+                <font-awesome-icon v-else :icon="sortTypes[0].icon" class="sort-icon" />
+              </span>
+            </div>
+            <div
+              v-for="field in columns"
+              :key="field.id"
+              class="table-view-th"
+              :class="sortedColumn.id === field.id ? 'sorted-header' : ''"
+            >
+              {{ field.label }}
+              <span class="ml-2" :id="field.id" @click="sortByColumn(field.id)">
+                <font-awesome-icon
+                  v-if="sortedColumn.id === field.id"
+                  :icon="sortTypes[sortedColumn.sortedStateIndex].icon"
+                  class="sorted-icon"
+                />
+                <font-awesome-icon v-else :icon="sortTypes[0].icon" class="sort-icon" />
+              </span>
+            </div>
+          </div>
+        </div>
 
-        <infinite-loading
-          v-else-if="!isLoadingItems && items.length && filterset"
-          ref="infiniteLoading"
-          :identifier="filterset.updated_at"
-          :force-use-infinite-wrapper="tableInfiniteWrapper"
-          @infinite="infiniteHandler"
-        >
-          <template #no-more>No more {{ tableInfiniteType }}</template>
-          <template #no-results>No more {{ tableInfiniteType }}</template>
-        </infinite-loading>
+        <div v-show="!isLoadingItems" ref="tbody" class="table-view-tbody" @scroll="onScroll" >
+          <div
+            v-for="item in items"
+            v-bind:item="item"
+            :key="`${item.id}-row`"
+            :class="{ 'panel-open': openPanels[item.id] }"
+            class="table-view-tr"
+          >
+            <div class="table-view-row">
+              <div
+                class="table-view-td"
+                :class="sortedColumn.id === firstColumnId ? 'sorted-column' : ''"
+              >
+                <slot
+                  name="first_column"
+                  :filterset="filterset"
+                  :item="item"
+                  :showPanel="showPanel"
+                  :isPanelOpen="openPanels[item.id]"
+                  :togglePanel="togglePanel"
+                  class="none"
+                />
+              </div>
 
-        <p v-else-if="!isLoadingItems && !items.length" class="mb-0">No {{ tableInfiniteType }}</p>
+              <div
+                v-for="field in columns"
+                :key="field.field_id"
+                class="table-view-td"
+                :class="sortedColumn.id === field.id ? 'sorted-column' : ''"
+              >
+                <slot :name="field.select_field" v-bind:item="item">
+                  <!-- eslint-disable-next-line vue/require-component-is -->
+                  <component v-bind="getField(item, field)" />
+                </slot>
+              </div>
+            </div>
+
+            <div
+              v-if="showPanel && openPanels[item.id]"
+              :key="`${item.id}-detail`"
+              class="table-view-detail"
+            >
+              <slot
+                name="detail"
+                :view.sync="view"
+                :item.sync="item"
+                :panelFields.sync="view.display_preferences.panel_fields"
+                :getField="getField"
+                :getAvailableFieldById="getAvailableFieldById"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="table-loader">
+          <loader-icon v-if="isLoadingItems" />
+
+          <infinite-loading
+            v-else-if="!isLoadingItems && items.length && filterset"
+            ref="infiniteLoading"
+            :identifier="filterset.updated_at"
+            :force-use-infinite-wrapper="tableInfiniteWrapper"
+            @infinite="infiniteHandler"
+          >
+            <template #no-more>No more {{ tableInfiniteType }}</template>
+            <template #no-results>No more {{ tableInfiniteType }}</template>
+          </infinite-loading>
+
+          <p v-else-if="!isLoadingItems && !items.length" class="mb-0">No {{ tableInfiniteType }}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -592,7 +683,9 @@ export default {
     isEmpty,
     isNil,
     onScroll(event) {
-      this.$refs.thead.scrollLeft = event.target.scrollLeft
+      this.$refs.thead.scrollLeft = event.target.scrollLeft;
+      const companyNameContainer = document.getElementById("company-name-container");
+      companyNameContainer.scrollTop = event.target.scrollTop;
     },
     sortByColumn(id) {
       if (this.sortedColumn.id !== id) {
@@ -835,6 +928,16 @@ export default {
   border-radius: 3px 3px 0px 0px;
   box-shadow: 0px 3px 6px $box-shadow;
   margin-bottom: 0;
+  .tview-component-container {
+    display: flex;
+    overflow-x: scroll;
+    width: 100%;
+    #company-name-container{
+        overflow: hidden;
+        background-color: white;
+      }
+
+  }
 
   .table-header {
     display: flex;
@@ -935,6 +1038,21 @@ export default {
     display: flex;
     flex-flow: column;
     font-size: 14px;
+    position: relative;
+
+    &:nth-child(1){
+      position: absolute;
+      z-index: 999;
+    }
+
+    &:nth-child(2){
+      width: auto;
+      z-index: 1;
+
+      .table-view-tbody{
+        overflow-x: hidden;
+      }
+    }
 
     .table-view-thead {
       overflow: hidden;
@@ -982,7 +1100,12 @@ export default {
       overflow: auto;
       display: flex;
       flex-flow: column;
-
+      height: 500px;
+      overflow: scroll;
+      z-index: 999;
+      
+  
+      
       &.ctrl-key {
         .table-view-tr {
           cursor: pointer;
@@ -1030,8 +1153,15 @@ export default {
         .table-view-row {
           display: flex;
           flex-flow: row;
+          min-height: 53px;
+          .first-td-container {
+            overflow: hidden;
+            z-index: 1;
+            max-height: 300px;
+          }
 
           .table-view-td {
+
             &:first-child {
               flex: 1 0 250px;
               width: 250px;
@@ -1063,6 +1193,8 @@ export default {
   .table-loader {
     text-align: center;
     padding: 1rem;
+    z-index: 999;
+    background-color: white;
   }
 
   .table-bulk {
