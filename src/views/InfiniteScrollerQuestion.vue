@@ -10,6 +10,7 @@
         The "TV Shows" tab content should display properly with the divs resized correctly based on the height of the
         element.
       </p>
+
     </section>
 
     <section class="movies-filter">
@@ -60,6 +61,8 @@
         </template>
       </infinite-scroller>
     </section>
+
+    
   </div>
 </template>
 
@@ -77,7 +80,7 @@ export default {
   data() {
     return {
       movies: [],
-      movieType: 'Movie'
+      movieType: 'TV Show'
     }
   },
   mounted() {
@@ -99,6 +102,13 @@ export default {
     },
     isTVShows() {
       return this.movieType === 'TV Show'
+    },
+    selectedMovies() {
+      if(this.movieType === "Movie"){
+        return this.movies.filter(movie => movie.type === 'Movie')
+      } else {
+        return this.movies.filter(movie => movie.type === 'TV Show')
+      }
     }
   },
   methods: {
@@ -110,6 +120,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+.test-container{
+  .test-row{
+    display: flex;
+    div{
+      width: 33%;
+      color: black;
+    }
+  }
+}
 .infinite-scroller-question {
   flex: 1 1 auto;
   display: flex;

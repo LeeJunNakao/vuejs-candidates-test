@@ -78,6 +78,9 @@ export default {
   mounted() {
     this.init()
   },
+  updated() {
+    this.onScroll();
+  },
   computed: {
     attached() {
       return this.itemsMetadata.slice(this.attachedRange.begin, this.attachedRange.end + 1).map((meta, index) => {
@@ -125,8 +128,7 @@ export default {
         await this.getScroller()
         return
       }
-
-      this.scroller = getScrollableParent(this.$el, false, true)
+      this.scroller = getScrollableParent(this.$el, false, false)
     },
     async fillInitial() {
       this.fill(this.attachedRange.begin, this.attachedRange.end + 1)
@@ -241,7 +243,7 @@ export default {
         }))
 
         this.scroller.scrollTop = 0
-        await this.fillInitial()
+        await this.fillInitial();
       }
     }
   }
