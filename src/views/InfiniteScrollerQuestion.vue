@@ -80,7 +80,7 @@ export default {
   data() {
     return {
       movies: [],
-      movieType: 'TV Show'
+      movieType: 'Movie'
     }
   },
   mounted() {
